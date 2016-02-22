@@ -1,0 +1,23 @@
+<table border='1'cellspacing="0" cellpadding="5" >
+    <tr>
+        <td>Store</td>
+        <td>Time</td>
+        <td>Order # This Hour</td>
+        <td>Revenue This Hour</td>
+        <td>Order # Today</td>
+        <td>Revenue Today</td>
+    </tr>
+    {% for shop in shops %}
+    <tr>
+        <td>{{shop.shop}}</td>
+        <td>{{shop.time}}</td>
+        <td>{{shop.order}}</td>
+        <td>{{shop.revenue}}</td>
+        <td>{{shop.ttl_order}}</td>
+        <td>{{shop.ttl_revenue}}</td>
+    </tr>
+    {% endfor %}
+
+
+</table>
+
