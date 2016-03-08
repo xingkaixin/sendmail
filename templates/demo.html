@@ -8,6 +8,16 @@
         <td>Revenue Today</td>
     </tr>
     {% for shop in shops %}
+    {% if shop.sum %}
+    <tr style="font-weight: bold">
+        <td>{{shop.shop}}</td>
+        <td>{{shop.time}}</td>
+        <td>{{shop.order}}</td>
+        <td>{{shop.revenue}}</td>
+        <td>{{shop.ttl_order}}</td>
+        <td>{{shop.ttl_revenue}}</td>
+    </tr>
+    {% else %}
     <tr>
         <td>{{shop.shop}}</td>
         <td>{{shop.time}}</td>
@@ -16,8 +26,15 @@
         <td>{{shop.ttl_order}}</td>
         <td>{{shop.ttl_revenue}}</td>
     </tr>
+    {% endif %}
     {% endfor %}
 
 
 </table>
+
+<mark>
+    <p>Exchange Rate</p>
+    <p>HKD:CNY 0.799</p>
+    <p>TWD:CNY 0.198</p>
+</mark>
 
