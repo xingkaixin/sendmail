@@ -1,3 +1,6 @@
+<head lang="zh-cn">
+    <meta charset="utf-8" />
+</head>
 <table border='1'cellspacing="0" cellpadding="5" >
     <tr>
         <td>Store</td>
@@ -13,18 +16,18 @@
         <td>{{shop.shop}}</td>
         <td>{{shop.time}}</td>
         <td>{{shop.order}}</td>
-        <td>{{shop.revenue}}</td>
+        <td>￥ {{shop.revenue}}</td>
         <td>{{shop.ttl_order}}</td>
-        <td>{{shop.ttl_revenue}}</td>
+        <td>￥ {{shop.ttl_revenue}}</td>
     </tr>
     {% else %}
     <tr>
         <td>{{shop.shop}}</td>
         <td>{{shop.time}}</td>
         <td>{{shop.order}}</td>
-        <td>{{shop.revenue}}</td>
+        <td>￥ {{shop.revenue}}</td>
         <td>{{shop.ttl_order}}</td>
-        <td>{{shop.ttl_revenue}}</td>
+        <td>￥ {{shop.ttl_revenue}}</td>
     </tr>
     {% endif %}
     {% endfor %}
@@ -34,7 +37,8 @@
 
 <mark>
     <p>Exchange Rate</p>
-    <p>HKD:CNY 0.799</p>
-    <p>TWD:CNY 0.198</p>
+    {% for currency in currencys%}
+    <p>{{currency.name}} {{currency.rate}}</p>
+    {% endfor%}
 </mark>
 

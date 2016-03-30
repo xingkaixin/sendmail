@@ -66,7 +66,7 @@ def updateSeq(dbconn):
 
 
 def run_data():
-    DWCONN = os.getenv('DWCONN')
+    DWCONN = os.getenv('DWCONNSTR')
     try:
         dc = DbConn(DWCONN)
         updateSeq(dc)
@@ -77,17 +77,50 @@ def run_data():
         dc.close()
 
 
+def get_exchange_rate():
+    DWCONN = os.getenv('DWCONNSTR')
+    try:
+        dc = DbConn(DWCONN)
+        sql  = """
+        SELECT CASE
+                 WHEN TO_CHAR(MAPPING_FROM1) = '150000021' THEN
+                  'HKD:CNY'
+                 ELSE
+                  'TWD:CNY'
+               END EXCHANGE_NAME,
+               TO_NUMBER(MAPPING_TO) RATE
+          FROM DWH_RPT_REFERENCE_CODE
+         WHERE TYPE_ID = 4
+           AND TO_CHAR(MAPPING_FROM1) IN ('150000021', '150000022')
+        """
+        rs = dc.query(sql)
+        currencys = []
+        for r in rs:
+            currency = {
+                'name': r[0],
+                'rate': r[1]
+            }
+            currencys.append(currency)
+        return currencys
+
+    except Exception as e:
+        print e
+        dc.rollback()
+    finally:
+        dc.close()
+
+
 def get_data(dayid, hour):
-    DWCONN = os.getenv('DWCONN')
+    DWCONN = os.getenv('DWCONNSTR')
     try:
         dc = DbConn(DWCONN)
         sql  = """
         SELECT SHOP_NAME,
                PERIOD,
                TRIM(TO_CHAR(SUM(ORDERS), '999,999,999')) ORDERS,
-               ROUND(SUM(REVENUE)) REVENUE,
+               TRIM(TO_CHAR(ROUND(SUM(REVENUE)), '999,999,999')) REVENUE,
                TRIM(TO_CHAR(SUM(TTL_ORDERS), '999,999,999')) TTL_ORDERS,
-               ROUND(SUM(TTL_REVENUE)) TTL_REVENUE
+               TRIM(TO_CHAR(ROUND(SUM(TTL_REVENUE)), '999,999,999')) TTL_REVENUE
           FROM DWH_RPT_UA_HOURLY      A,
                DWH_RPT_REFERENCE_CODE B
          WHERE DAYID = {dayid}
@@ -99,7 +132,6 @@ def get_data(dayid, hour):
                   PERIOD
          ORDER BY B.MAPPING_TO
         """.format(dayid=dayid, hour=hour)
-
         rs = dc.query(sql)
         shops = []
         for r in rs:
@@ -134,9 +166,9 @@ def create_app():
 
 def sendmail():
     title = 'UA TTL'
-    reciver = 'dingjiao.lin@baozun.cn'
+    recivers = ''
 
-    DWCONN = os.getenv('DWCONN')
+    DWCONN = os.getenv('DWCONNSTR')
     run_data()
 
     batchday = arrow.utcnow().to('local')
@@ -148,13 +180,17 @@ def sendmail():
         dayid = batchday.replace(days=-1).format('YYYYMMDD')
 
     shops = get_data(dayid, hour)
+    currencys = get_exchange_rate()
 
     msg = Message(title)
-    msg.add_recipient(reciver)
-    msg.html = render_template('demo.html', shops=shops)
+
+    msg.recipients = [r for r in recivers.split(';') if len(r) > 0]
+    msg.html = render_template('demo.html', shops=shops, currencys=currencys)
     mail.send(msg)
 
 if __name__ == "__main__":
-    app = create_app()
-    app.app_context().push()
-    sendmail()
+    runday = arrow.utcnow().to('local')
+    if runday.format('YYYYMMDD') >= '20160311' and runday.format('HH') >= '01':
+        app = create_app()
+        app.app_context().push()
+        sendmail()

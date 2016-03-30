@@ -9,3 +9,4 @@ class BasicConfig(object):
     MAIL_USERNAME = os.getenv('testmail')
     MAIL_PASSWORD = os.getenv('testmailpw')
     MAIL_DEFAULT_SENDER = MAIL_USERNAME
+    MAIL_DEBUG = True
