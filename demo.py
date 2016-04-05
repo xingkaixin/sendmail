@@ -117,10 +117,10 @@ def get_data(dayid, hour):
         sql  = """
         SELECT SHOP_NAME,
                PERIOD,
-               TRIM(TO_CHAR(SUM(ORDERS), '999,999,999')) ORDERS,
-               TRIM(TO_CHAR(ROUND(SUM(REVENUE)), '999,999,999')) REVENUE,
-               TRIM(TO_CHAR(SUM(TTL_ORDERS), '999,999,999')) TTL_ORDERS,
-               TRIM(TO_CHAR(ROUND(SUM(TTL_REVENUE)), '999,999,999')) TTL_REVENUE
+               TRIM(TO_CHAR(SUM(nvl(ORDERS,0)), '999,999,999')) ORDERS,
+               TRIM(TO_CHAR(ROUND(SUM(nvl(REVENUE,0))), '999,999,999')) REVENUE,
+               TRIM(TO_CHAR(SUM(nvl(TTL_ORDERS,0)), '999,999,999')) TTL_ORDERS,
+               TRIM(TO_CHAR(ROUND(SUM(nvl(TTL_REVENUE,0))), '999,999,999')) TTL_REVENUE
           FROM DWH_RPT_UA_HOURLY      A,
                DWH_RPT_REFERENCE_CODE B
          WHERE DAYID = {dayid}
@@ -165,7 +165,7 @@ def create_app():
 
 
 def sendmail():
-    title = 'UA TTL'
+    title = ''
     recivers = ''
 
     DWCONN = os.getenv('DWCONNSTR')
@@ -178,6 +178,9 @@ def sendmail():
     if hour == '00':
         hour = '23'
         dayid = batchday.replace(days=-1).format('YYYYMMDD')
+	title += '_{day}_Total'.format(day=batchday.replace(days=-1).format('MMM_DD'))
+    else:
+	hour = batchday.replace(hours=-1).format('HH')
 
     shops = get_data(dayid, hour)
     currencys = get_exchange_rate()
@@ -189,8 +192,6 @@ def sendmail():
     mail.send(msg)
 
 if __name__ == "__main__":
-    runday = arrow.utcnow().to('local')
-    if runday.format('YYYYMMDD') >= '20160311' and runday.format('HH') >= '01':
-        app = create_app()
-        app.app_context().push()
-        sendmail()
+    app = create_app()
+    app.app_context().push()
+    sendmail()
