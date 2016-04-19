@@ -12,6 +12,7 @@ from flask import (
     render_template
 )
 from democonf import BasicConfig
+import time
 
 
 class DbConn(object):
@@ -178,9 +179,10 @@ def sendmail():
     if hour == '00':
         hour = '23'
         dayid = batchday.replace(days=-1).format('YYYYMMDD')
-	title += '_{day}_Total'.format(day=batchday.replace(days=-1).format('MMM_DD'))
+        title += '_{day}_Total'.format(
+            day=batchday.replace(days=-1).format('MMM_DD'))
     else:
-	hour = batchday.replace(hours=-1).format('HH')
+        hour = batchday.replace(hours=-1).format('HH')
 
     shops = get_data(dayid, hour)
     currencys = get_exchange_rate()
@@ -192,6 +194,12 @@ def sendmail():
     mail.send(msg)
 
 if __name__ == "__main__":
-    app = create_app()
-    app.app_context().push()
-    sendmail()
+    for i in range(3):
+        try:
+            app = create_app()
+            app.app_context().push()
+            sendmail()
+        except:
+            time.sleep(60)
+        else:
+            break
